@@ -94,7 +94,7 @@ def run_experiment(paths: Paths, config: dict) -> dict:
     errors = test.loc[pred != test.label.to_numpy(), ["id", "label", "text"]].copy()
     errors["prediction"] = pred[pred != test.label.to_numpy()]
     errors["text"] = errors.text.str.slice(0, 1500)
-    errors.head(80).to_csv(paths.results / "error_examples.csv", index=False)
+    errors.groupby("label", group_keys=False).head(40).to_csv(paths.results / "error_examples.csv", index=False)
     lengths = test.text.str.split().str.len().to_numpy()
     length_analysis = []
     for label, lower, upper in [("<100 words", 0, 100), ("100–299 words", 100, 300), (">=300 words", 300, np.inf)]:

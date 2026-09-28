@@ -28,7 +28,7 @@ def make_figures(paths: Paths, summary: dict) -> None:
                          "axes.linewidth": 1.2, "legend.frameon": False, "svg.fonttype": "none"})
     records = summary["models"]
     names = [NAMES[row["model"]] for row in records]
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.8))
     x = np.arange(len(records))
     for offset, metric, label, hatch in [(-0.19, "accuracy", "Accuracy", ""), (0.19, "macro_f1", "Macro-F1", "//")]:
         values = [row[metric] for row in records]
@@ -36,7 +36,7 @@ def make_figures(paths: Paths, summary: dict) -> None:
         axes[0].bar_label(bars, fmt="%.3f", padding=3, fontsize=9)
     axes[0].set(xticks=x, xticklabels=names, ylim=(0, 1.04), ylabel="Test score", title="A  |  Held-out performance")
     axes[0].axhline(summary["baseline"]["accuracy"], ls=":", color="gray", label="Majority accuracy")
-    axes[0].legend(loc="lower right", fontsize=9)
+    axes[0].legend(loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=3, fontsize=9)
     bars = axes[1].bar(x, [row["search_seconds"] for row in records], color=COLORS, edgecolor="#272727")
     axes[1].bar_label(bars, fmt="%.1f s", padding=3)
     axes[1].set(xticks=x, xticklabels=names, ylabel="Seconds", title="B  |  CV search + final fit")
@@ -70,7 +70,7 @@ def make_figures(paths: Paths, summary: dict) -> None:
         axes[0].bar_label(bars, padding=3, fontsize=9)
     axes[0].set(xticks=[0, 1], xticklabels=["Train", "Test"], ylabel="Reviews", title="A  |  Cleaned class balance")
     axes[0].margins(y=0.2)
-    axes[0].legend(loc="lower right")
+    axes[0].legend(loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=2, fontsize=9)
     for split, color in [("train", "#42949E"), ("test", "#0F4D92")]:
         lengths = data.loc[data.split.eq(split)].text.str.split().str.len()
         axes[1].hist(lengths, bins=np.arange(0, 1501, 50), alpha=0.5, color=color, label=split)

@@ -29,6 +29,10 @@ def generate_report(paths: Paths) -> None:
         f"CV 训练/验证 Macro-F1 差 {(row['cv_train_macro_f1']-row['cv_macro_f1'])*100:.2f} 个百分点；"
         f"最终词表 {row['vocabulary_size']:,}；重拟合 {row['refit_seconds']:.1f}s；"
         f"测试预测及分数计算 {row['predict_and_score_seconds']:.1f}s。" for row in rows)
+    test_leader = max(rows, key=lambda row: row["accuracy"])
+    ranking_note = (f"本次独立测试准确率最高的是 {NAMES[test_leader['model']]}（{percentage(test_leader['accuracy'])}），"
+                    f"比 CV 所选模型高 {(test_leader['accuracy']-winner['accuracy'])*100:.2f} 个百分点。"
+                    "训练 CV 与独立测试排序可能不同；本实验保留事先按训练 CV 作出的选择，不依据测试表现改选模型。")
     ci = summary["uncertainty"]["accuracy_ci"][summary["winner"]]
     table_rows, md_rows = [], []
     for row in rows:
@@ -39,7 +43,7 @@ def generate_report(paths: Paths) -> None:
                  f"{percentage(interval[0])}–{percentage(interval[1])}"]
         table_rows.append("<tr>" + "".join(f"<td>{html.escape(cell)}</td>" for cell in cells) + "</tr>")
         md_rows.append("| " + " | ".join(cells) + " |")
-    errors = pd.read_csv(paths.results / "error_examples.csv", keep_default_na=False).head(12)
+    errors = pd.read_csv(paths.results / "error_examples.csv", keep_default_na=False).groupby("label", group_keys=False).head(6)
     error_html = "".join(
         f'<details class="error" data-label="{row.label}"><summary>真实：{"正面" if row.label else "负面"} / '
         f'预测：{"正面" if row.prediction else "负面"} · {html.escape(row.id)}</summary>'
@@ -63,7 +67,7 @@ def generate_report(paths: Paths) -> None:
                "length_rows": length_rows, "comparisons": comparisons,
                "baseline_accuracy": percentage(summary["baseline"]["accuracy"]),
                "generated": html.escape(summary["generated_at_utc"]),
-               "cv_folds": str(summary["config"]["cv_folds"]), "tradeoff": html.escape(tradeoff)}
+               "cv_folds": str(summary["config"]["cv_folds"]), "tradeoff": html.escape(tradeoff), "ranking_note": html.escape(ranking_note)}
     template = files("sentiment_lab.web").joinpath("report.html").read_text(encoding="utf-8")
     for key, value in context.items():
         template = template.replace("{{" + key + "}}", value)
@@ -103,6 +107,8 @@ CV 标准差描述三折差异，不是置信区间。search_seconds 包含向�
 
 {tradeoff}
 
+{ranking_note}
+
 {fitting_details}
 
 训练/验证差值用于观察模型对训练文本的拟合程度；差值较大提示泛化差距，但不能仅据此证明过拟合机制。
@@ -116,7 +122,7 @@ CV 标准差描述三折差异，不是置信区间。search_seconds 包含向�
 ## 5. 错误分析与解释
 
 混淆矩阵行是真实标签、列是预测标签，顺序均为负面/正面。Precision、Recall、F1 默认以正面为正类；macro-F1 对两类 F1 等权平均。ROC-AUC 根据连续决策分数计算，不对硬标签计算 AUC。
-artifacts/results/error_examples.csv 保存所选模型最多80条误判，网页显示前12条，可按真实类别筛选。这是按ID排列的定性示例，正文最多截取1500字符，不是随机抽样。否定、讽刺、长距离语义和混合评价是值得人工检查的机制假设，不应把示例归因视作已验证事实。
+artifacts/results/error_examples.csv 按真实标签各保存所选模型最多40条误判，网页每类显示最多6条，可按真实类别筛选。这是分组后按ID排列的定性示例，正文最多截取1500字符，不是随机抽样。否定、讽刺、长距离语义和混合评价是值得人工检查的机制假设，不应把示例归因视作已验证事实。
 词语系数表示当前训练数据中的关联，不代表因果或人工解释的真实性。长度分组准确率仅为描述性事后分析，不用于选择模型：
 
 | 评论长度 | 数量 | 所选模型准确率 |
