@@ -71,20 +71,51 @@ def discover_archive(page: str, base_url: str = SOURCE) -> str:
 
 
 def download(client: requests.Session, url: str, target: Path) -> None:
+    """Download bounded HTTP byte ranges; retry failed bodies, not just headers."""
     temporary = target.with_suffix(".part")
+    metadata = client.head(url, timeout=(15, 60))
+    metadata.raise_for_status()
+    total = int(metadata.headers["Content-Length"])
+    chunk_size = 8 * 1024 * 1024
+    position = 0
+    etag = metadata.headers.get("ETag")
     try:
-        with client.get(url, stream=True, timeout=(15, 120)) as response:
-            response.raise_for_status()
-            received = 0
-            with temporary.open("wb") as stream:
-                for block in response.iter_content(1024 * 1024):
-                    stream.write(block)
-                    received += len(block)
-                    if received // (10 * 1024 * 1024) != (received - len(block)) // (10 * 1024 * 1024):
-                        LOGGER.info("Downloaded %.0f MiB", received / 1024**2)
-            expected = response.headers.get("Content-Length")
-            if expected and not response.headers.get("Content-Encoding") and received != int(expected):
-                raise IOError("Incomplete archive download")
+        with temporary.open("wb") as stream:
+            while position < total:
+                end = min(position + chunk_size, total) - 1
+                headers = {"Range": f"bytes={position}-{end}"}
+                if etag:
+                    headers["If-Range"] = etag
+                for attempt in range(3):
+                    try:
+                        stream.seek(position)
+                        stream.truncate()
+                        with client.get(url, headers=headers, stream=True, timeout=(15, 120)) as response:
+                            response.raise_for_status()
+                            if response.status_code == 206:
+                                expected_range = f"bytes {position}-{end}/{total}"
+                                if response.headers.get("Content-Range") != expected_range:
+                                    raise ValueError("Unexpected Content-Range; archive may have changed")
+                                expected = end - position + 1
+                            elif response.status_code == 200 and position == 0:
+                                expected = total  # Server may ignore Range on the first request.
+                            else:
+                                raise ValueError("Server stopped honoring byte ranges")
+                            received = 0
+                            for block in response.iter_content(1024 * 1024):
+                                stream.write(block)
+                                received += len(block)
+                            if received != expected:
+                                raise IOError("Incomplete archive segment")
+                        position += received
+                        LOGGER.info("Downloaded %.0f / %.0f MiB", position / 1024**2, total / 1024**2)
+                        break
+                    except (requests.RequestException, IOError):
+                        if attempt == 2:
+                            raise
+                        LOGGER.warning("Retrying segment at byte %s", position)
+                        time.sleep(2 ** attempt)
+                time.sleep(0.2)
         temporary.replace(target)
     finally:
         temporary.unlink(missing_ok=True)
