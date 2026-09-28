@@ -1,0 +1,38 @@
+{
+  "original_rows": 50000,
+  "empty_removed": 0,
+  "within_split": {
+    "train": {
+      "conflicting_rows_removed": 0,
+      "duplicate_rows_removed": 98
+    },
+    "test": {
+      "conflicting_rows_removed": 0,
+      "duplicate_rows_removed": 201
+    }
+  },
+  "cross_split_test_duplicates_removed": 123,
+  "clean_rows": 49578,
+  "counts": {
+    "train": {
+      "0": 12431,
+      "1": 12471
+    },
+    "test": {
+      "0": 12265,
+      "1": 12411
+    }
+  },
+  "word_length": {
+    "train": {
+      "median": 173.0,
+      "mean": 231.71122801381415,
+      "p95": 593.0
+    },
+    "test": {
+      "median": 171.0,
+      "mean": 226.39844383206355,
+      "p95": 577.0
+    }
+  }
+}

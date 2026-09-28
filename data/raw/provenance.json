@@ -1,0 +1,23 @@
+{
+  "source_page": "https://ai.stanford.edu/~amaas/data/sentiment/",
+  "archive_url": "https://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz",
+  "retrieved_at_utc": "2026-09-28T02:13:12.399517+00:00",
+  "sha256": "c40f74a18d3b61f90feba1e17730e0d38e8b97c05fde7008942e91923d1658fe",
+  "archive_bytes": 84125825,
+  "robots": [
+    {
+      "url": "https://ai.stanford.edu/robots.txt",
+      "status": 200,
+      "allowed": true
+    },
+    {
+      "url": "https://ai.stanford.edu/robots.txt",
+      "status": 200,
+      "allowed": true
+    }
+  ],
+  "user_agent": "CourseSentimentLab/1.0 (educational public dataset acquisition)",
+  "acquisition": "publisher HTML discovery + public benchmark archive",
+  "original_labeled_reviews": 50000,
+  "excluded_unlabeled_reviews": 50000
+}

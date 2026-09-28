@@ -1,0 +1,6 @@
+{
+  "winner": "linear_svm",
+  "criterion": "training 3-fold CV macro-F1",
+  "test_used_for_selection": false,
+  "cv_folds": 3
+}

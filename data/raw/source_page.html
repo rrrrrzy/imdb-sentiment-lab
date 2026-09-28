@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Large Movie Review Dataset (IMDB) — Andrew Maas</title>
+<meta name="author" content="Andrew Maas">
+<meta name="description" content="Large Movie Review Dataset for binary sentiment classification — 50,000 polarized IMDB reviews introduced in Maas et al., ACL 2011. Standard benchmark in BERT, ULMFiT, RoBERTa, XLNet, and other landmark NLP papers.">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f7f7f5;
+    --fg: #2E2D29;
+    --muted: #53565A;
+    --muted-2: #767676;
+    --rule: #D5D5D4;
+    --rule-soft: #ECECEA;
+    --cardinal: #8C1515;
+    --cardinal-dark: #820000;
+    --palo-alto: #175E54;
+    --sky: #0E5B78;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 36px 28px 72px; }
+
+  a { color: var(--cardinal); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+  .stanford-mark {
+    font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--cardinal); margin: 0 0 14px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--rule-soft);
+  }
+  .stanford-mark a { color: var(--cardinal); }
+  .stanford-mark a:hover { color: var(--cardinal-dark); text-decoration: underline; }
+  .stanford-mark .sep { color: var(--muted-2); margin: 0 8px; font-weight: 400; }
+
+  .breadcrumb {
+    font-size: 0.85rem; color: var(--muted); margin-bottom: 24px;
+  }
+  .breadcrumb a { color: var(--muted); }
+  .breadcrumb a:hover { color: var(--cardinal); }
+
+  h1 {
+    font-size: 2rem; font-weight: 700; margin: 0 0 4px;
+    letter-spacing: -0.015em; line-height: 1.15;
+  }
+  .subtitle {
+    color: var(--muted); font-size: 1rem; margin: 0 0 24px; font-weight: 400;
+  }
+  .subtitle a { color: var(--muted); border-bottom: 1px dotted var(--muted); }
+  .subtitle a:hover { color: var(--cardinal); border-color: var(--cardinal); }
+
+  h2 {
+    font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--cardinal); margin: 44px 0 16px;
+    padding-bottom: 8px; border-bottom: 2px solid var(--cardinal);
+  }
+  h3 { font-size: 1rem; font-weight: 600; color: var(--fg); margin: 22px 0 8px; }
+  p { margin: 0 0 14px; }
+
+  /* Stats badges row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+    margin: 24px 0 8px;
+  }
+  .stat-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--rule-soft);
+    border-left: 3px solid var(--cardinal);
+    padding: 12px 16px;
+    border-radius: 2px;
+  }
+  .stat-card .num {
+    font-size: 1.4rem; font-weight: 700; color: var(--cardinal);
+    line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+  }
+  .stat-card .label {
+    font-size: 0.78rem; color: var(--muted); margin-top: 2px;
+  }
+
+  /* Download box */
+  .download {
+    background: var(--bg-soft); border: 1px solid var(--rule);
+    border-radius: 2px; padding: 16px 20px; margin: 8px 0 14px;
+  }
+  .download .file {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .download a.filename {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.95rem; font-weight: 600;
+    color: var(--cardinal); border-bottom: 1px solid rgba(140,21,21,0.25);
+  }
+  .download a.filename:hover { border-bottom-color: var(--cardinal); text-decoration: none; }
+  .download .size { color: var(--muted); font-size: 0.85rem; }
+  .download .desc { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+  /* Splits table */
+  .splits {
+    width: 100%; border-collapse: collapse; margin: 8px 0 16px;
+    font-size: 0.92rem;
+  }
+  .splits th, .splits td {
+    text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rule-soft);
+  }
+  .splits th {
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); font-weight: 600;
+  }
+  .splits td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Mirrors / integrations grid */
+  .mirrors {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+  }
+  .mirror {
+    display: block;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--cardinal);
+    border-radius: 2px;
+    padding: 14px 16px;
+    color: var(--fg);
+    transition: background 0.15s, transform 0.15s;
+  }
+  .mirror:hover { background: var(--bg-soft); transform: translateY(-1px); text-decoration: none; }
+  .mirror-name { font-weight: 700; font-size: 0.95rem; color: var(--cardinal); }
+  .mirror-desc { font-size: 0.85rem; color: var(--muted); margin-top: 3px; }
+  .mirror-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.78rem; color: var(--fg); margin-top: 8px;
+    background: var(--bg-soft); padding: 4px 7px; border-radius: 2px;
+    display: block; max-width: 100%;
+    overflow-x: auto; white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Used-by list */
+  .usedby {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .usedby-row {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .usedby-name {
+    font-weight: 600; color: var(--fg); font-size: 0.95rem;
+  }
+  .usedby-name a { color: var(--fg); }
+  .usedby-name a:hover { color: var(--cardinal); }
+  .usedby-meta { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+
+  /* Bibtex */
+  .bibtex {
+    background: var(--bg-soft); border: 1px solid var(--rule-soft);
+    border-radius: 2px; padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.82rem; line-height: 1.55;
+    overflow-x: auto; white-space: pre;
+    color: var(--fg);
+  }
+
+  /* Field list */
+  .fields {
+    display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px;
+    font-size: 0.92rem;
+  }
+  .fields dt {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 600; color: var(--cardinal);
+  }
+  .fields dd { margin: 0; color: var(--fg); }
+
+  footer {
+    margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--rule);
+    font-size: 0.82rem; color: var(--muted);
+  }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--cardinal); }
+  .footer-contact { margin-bottom: 8px; }
+  .footer-stanford {
+    font-size: 0.75rem; color: var(--muted-2);
+    border-top: 1px solid var(--rule-soft);
+    padding-top: 10px; margin-top: 8px;
+  }
+  .footer-stanford a { color: var(--muted-2); }
+
+  @media (max-width: 680px) {
+    .wrap { padding: 24px 18px 48px; }
+    h1 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="stanford-mark">
+    <a href="https://www.stanford.edu/">Stanford University</a>
+    <span class="sep">&middot;</span>
+    <a href="https://cs.stanford.edu/">Computer Science</a>
+  </div>
+
+  <div class="breadcrumb"><a href="../../index.html">&larr; Andrew Maas</a></div>
+
+  <h1>Large Movie Review Dataset</h1>
+  <p class="subtitle">
+    A binary sentiment classification benchmark introduced in
+    <a href="https://aclanthology.org/P11-1015/">Maas et al., ACL 2011</a>.
+    Also known as <em>aclImdb</em> or simply <em>IMDB</em>.
+  </p>
+
+  <section>
+    <p>
+      This dataset contains 50,000 polarized movie reviews scraped from IMDB &mdash; 25,000 for training and 25,000 for testing &mdash; plus 50,000 additional unlabeled reviews for unsupervised or semi-supervised learning. Reviews are labeled only when strongly positive (score &ge; 7/10) or strongly negative (score &le; 4/10), so the resulting classification task is challenging but unambiguous. Both raw text and pre-processed bag-of-words formats are provided.
+    </p>
+    <p>
+      In the years since release the dataset has become one of the standard text-classification benchmarks in NLP, used to evaluate landmark models including ULMFiT, ELMo, BERT, RoBERTa, XLNet, ALBERT, and DistilBERT. It ships in <a href="https://huggingface.co/datasets/stanfordnlp/imdb">Hugging Face Datasets</a>, <a href="https://www.tensorflow.org/datasets/catalog/imdb_reviews">TensorFlow Datasets</a>, <a href="https://keras.io/api/datasets/imdb/">Keras</a>, and <a href="https://pytorchnlp.readthedocs.io/en/latest/_modules/torchnlp/datasets/imdb.html">PyTorch-NLP</a>.
+    </p>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="num">50,000</div><div class="label">Labeled reviews</div></div>
+      <div class="stat-card"><div class="num">7,920</div><div class="label">Citations of the source paper</div></div>
+      <div class="stat-card"><div class="num">179K</div><div class="label">Hugging Face downloads / month</div></div>
+      <div class="stat-card"><div class="num">1,547+</div><div class="label">Models on Hugging Face</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Download</h2>
+    <div class="download">
+      <div class="file">
+        <a class="filename" href="aclImdb_v1.tar.gz">aclImdb_v1.tar.gz</a>
+        <span class="size">~84 MB compressed &middot; ~133 MB extracted</span>
+      </div>
+      <p class="desc">Large Movie Review Dataset v1.0 &mdash; raw text reviews plus pre-tokenized bag-of-words features.</p>
+    </div>
+    <p style="font-size: 0.9rem; color: var(--muted); margin: 0 0 14px;">
+      See the included <a href="https://ai.stanford.edu/~amaas/data/sentiment/README">README</a> for full file layout, class balance, and a description of the bag-of-words encoding.
+    </p>
+
+    <h3>Splits</h3>
+    <table class="splits">
+      <thead><tr><th>Split</th><th>Reviews</th><th>Labels</th></tr></thead>
+      <tbody>
+        <tr><td>Train</td><td class="num">25,000</td><td>balanced pos / neg</td></tr>
+        <tr><td>Test</td><td class="num">25,000</td><td>balanced pos / neg</td></tr>
+        <tr><td>Unsupervised</td><td class="num">50,000</td><td>unlabeled</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Fields</h3>
+    <dl class="fields">
+      <dt>text</dt><dd>raw movie review (string)</dd>
+      <dt>label</dt><dd>0 = negative, 1 = positive</dd>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Mirrors &amp; library integrations</h2>
+    <div class="mirrors">
+      <a class="mirror" href="https://huggingface.co/datasets/stanfordnlp/imdb">
+        <div class="mirror-name">Hugging Face Datasets</div>
+        <div class="mirror-desc">Parquet format, 100K rows, 1,547+ trained models.</div>
+        <div class="mirror-code">load_dataset("stanfordnlp/imdb")</div>
+      </a>
+      <a class="mirror" href="https://www.tensorflow.org/datasets/catalog/imdb_reviews">
+        <div class="mirror-name">TensorFlow Datasets</div>
+        <div class="mirror-desc">Configurations for plain text, byte-pair, and subword encodings.</div>
+        <div class="mirror-code">tfds.load("imdb_reviews")</div>
+      </a>
+      <a class="mirror" href="https://keras.io/api/datasets/imdb/">
+        <div class="mirror-name">Keras Datasets</div>
+        <div class="mirror-desc">Pre-tokenized integer-indexed reviews for quick experimentation.</div>
+        <div class="mirror-code">keras.datasets.imdb.load_data()</div>
+      </a>
+      <a class="mirror" href="https://pytorchnlp.readthedocs.io/en/latest/_modules/torchnlp/datasets/imdb.html">
+        <div class="mirror-name">PyTorch-NLP</div>
+        <div class="mirror-desc">Train/test splits as Python iterables.</div>
+        <div class="mirror-code">imdb_dataset(train=True, test=True)</div>
+      </a>
+      <a class="mirror" href="https://zenodo.org/records/7929635">
+        <div class="mirror-name">Zenodo</div>
+        <div class="mirror-desc">Archival mirror of the original v1.0 release.</div>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Used as a benchmark by</h2>
+    <p style="font-size: 0.92rem; color: var(--muted); margin-bottom: 14px;">
+      A non-exhaustive list of landmark papers and models that use this dataset to evaluate text-classification or representation-learning quality. Modern transformer models reach 95–97% test accuracy on the binary task; the original 2011 paper reported 88.89%.
+    </p>
+    <div class="usedby">
+      <div class="usedby-row">
+        <div class="usedby-name"><a href="https://arxiv.org/abs/1810.04805">BERT</a></div>
+        <div class="usedby-meta">Devlin et al., NAACL 2019 &middot; pretraining benchmark</div>
+      </div>
+      <div class="usedby-row">
+        <div class="usedby-name"><a href="https://arxiv.org/abs/1801.06146">ULMFiT</a></div>
+        <div class="usedby-meta">Howard &amp; Ruder, ACL 2018 &middot; transfer-learning showcase</div>
+      </div>
+      <div class="usedby-row">
+        <div class="usedby-name"><a href="https://arxiv.org/abs/1802.05365">ELMo</a></div>
+        <div class="usedby-meta">Peters et al., NAACL 2018 &middot; contextualized embeddings</div>
+      </div>
+      <div class="usedby-row">
+        <div class="usedby-name"><a href="https://arxiv.org/abs/1907.11692">RoBERTa</a></div>
+        <div class="usedby-meta">Liu et al., 2019 &middot; replication study of BERT</div>
+      </div>
+      <div class="usedby-row">
+        <div class="usedby-name"><a href="https://arxiv.org/abs/1906.08237">XLNet</a></div>
+        <div class="usedby-meta">Yang et al., NeurIPS 2019 &middot; permutation-based pretraining</div>
+      </div>
+      <div class="usedby-row">
+        <div class="usedby-name"><a href="https://arxiv.org/abs/1909.11942">ALBERT</a></div>
+        <div class="usedby-meta">Lan et al., ICLR 2020 &middot; parameter-efficient BERT</div>
+      </div>
+      <div class="usedby-row">
+        <div class="usedby-name"><a href="https://arxiv.org/abs/1910.01108">DistilBERT</a></div>
+        <div class="usedby-meta">Sanh et al., 2019 &middot; distillation benchmark</div>
+      </div>
+      <div class="usedby-row">
+        <div class="usedby-name"><a href="https://arxiv.org/abs/1908.10084">Sentence-BERT</a></div>
+        <div class="usedby-meta">Reimers &amp; Gurevych, EMNLP 2019 &middot; sentence embeddings</div>
+      </div>
+      <div class="usedby-row">
+        <div class="usedby-name"><a href="https://aclanthology.org/D14-1181/">Paragraph Vectors / Doc2Vec</a></div>
+        <div class="usedby-meta">Le &amp; Mikolov, ICML 2014 &middot; document representations</div>
+      </div>
+      <div class="usedby-row">
+        <div class="usedby-name"><a href="https://nlpprogress.com/english/sentiment_analysis.html">NLP-progress leaderboard</a></div>
+        <div class="usedby-meta">Sebastian Ruder &middot; sentiment-analysis SOTA tracking</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Citation</h2>
+    <p>If you use this dataset, please cite the ACL 2011 paper:</p>
+    <pre class="bibtex">@InProceedings{maas-EtAl:2011:ACL-HLT2011,
+  author    = {Maas, Andrew L.  and  Daly, Raymond E.  and  Pham, Peter T.
+               and  Huang, Dan  and  Ng, Andrew Y.  and  Potts, Christopher},
+  title     = {Learning Word Vectors for Sentiment Analysis},
+  booktitle = {Proceedings of the 49th Annual Meeting of the Association for
+               Computational Linguistics: Human Language Technologies},
+  month     = {June},
+  year      = {2011},
+  address   = {Portland, Oregon, USA},
+  publisher = {Association for Computational Linguistics},
+  pages     = {142--150},
+  url       = {http://www.aclweb.org/anthology/P11-1015}
+}</pre>
+    <p style="font-size: 0.9rem;">
+      <a href="https://ai.stanford.edu/~amaas/papers/wvSent_acl2011.bib">Download .bib file</a> &middot;
+      <a href="https://ai.stanford.edu/~amaas/papers/wvSent_acl2011.pdf">Read the paper (PDF)</a>
+    </p>
+  </section>
+
+  <section>
+    <h2>Contact</h2>
+    <p>
+      Questions or comments about the dataset? Email <strong>amaas [at] cs.stanford.edu</strong>.
+    </p>
+  </section>
+
+  <footer>
+    <div class="footer-contact">
+      <a href="../../index.html">&larr; Back to Andrew Maas</a> &middot;
+      <a href="https://scholar.google.com/citations?user=emiAAG0AAAAJ">Scholar</a> &middot;
+      <a href="https://www.linkedin.com/in/andrewleemaas">LinkedIn</a>
+    </div>
+    <div class="footer-stanford">
+      Maintained by Andrew Maas. &copy; 2026
+      <a href="https://www.stanford.edu/">Stanford University</a>.
+      <a href="https://www.stanford.edu/site/terms/">Terms of use</a> &middot;
+      <a href="https://uit.stanford.edu/security/copyright-infringement">Copyright complaints</a> &middot;
+      Last updated April 2026.
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

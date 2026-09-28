@@ -1,0 +1,511 @@
+{
+  "generated_at_utc": "2026-09-28T02:17:08.768914+00:00",
+  "config": {
+    "seed": 42,
+    "cv_folds": 3,
+    "n_jobs": 1,
+    "min_samples": 10000,
+    "bootstrap_repeats": 1000,
+    "features": {
+      "max_features": 40000,
+      "ngram_range": [
+        1,
+        2
+      ],
+      "min_df": 3,
+      "max_df": 0.98,
+      "sublinear_tf": true
+    },
+    "models": {
+      "multinomial_nb": {
+        "clf__alpha": [
+          0.5,
+          1.0
+        ]
+      },
+      "logistic_regression": {
+        "clf__C": [
+          0.5,
+          2.0
+        ]
+      },
+      "linear_svm": {
+        "clf__C": [
+          0.5,
+          2.0
+        ]
+      }
+    }
+  },
+  "winner": "linear_svm",
+  "train_rows": 24902,
+  "test_rows": 24676,
+  "models": [
+    {
+      "model": "multinomial_nb",
+      "best_params": {
+        "clf__alpha": 1.0
+      },
+      "cv_macro_f1": 0.8790444953980344,
+      "cv_std": 0.0006919584077634965,
+      "cv_train_macro_f1": 0.9184195925784205,
+      "search_seconds": 59.649225874920376,
+      "refit_seconds": 7.092679977416992,
+      "vocabulary_size": 40000,
+      "predict_and_score_seconds": 7.530295624979772,
+      "accuracy": 0.871859296482412,
+      "precision": 0.8845098528311299,
+      "recall": 0.8571428571428571,
+      "f1": 0.8706113429904248,
+      "macro_f1": 0.8718473749551144,
+      "roc_auc": 0.9442833989008671,
+      "confusion_matrix": [
+        [
+          10876,
+          1389
+        ],
+        [
+          1773,
+          10638
+        ]
+      ],
+      "classification_report": {
+        "negative": {
+          "precision": 0.859830816665349,
+          "recall": 0.8867509172441908,
+          "f1-score": 0.8730834069198041,
+          "support": 12265.0
+        },
+        "positive": {
+          "precision": 0.8845098528311299,
+          "recall": 0.8571428571428571,
+          "f1-score": 0.8706113429904248,
+          "support": 12411.0
+        },
+        "accuracy": 0.871859296482412,
+        "macro avg": {
+          "precision": 0.8721703347482395,
+          "recall": 0.8719468871935239,
+          "f1-score": 0.8718473749551144,
+          "support": 24676.0
+        },
+        "weighted avg": {
+          "precision": 0.8722433437302505,
+          "recall": 0.871859296482412,
+          "f1-score": 0.8718400617492932,
+          "support": 24676.0
+        }
+      }
+    },
+    {
+      "model": "logistic_regression",
+      "best_params": {
+        "clf__C": 2.0
+      },
+      "cv_macro_f1": 0.8992322418778853,
+      "cv_std": 0.0023396592188566004,
+      "cv_train_macro_f1": 0.969680674013556,
+      "search_seconds": 61.32581291696988,
+      "refit_seconds": 7.693200349807739,
+      "vocabulary_size": 40000,
+      "predict_and_score_seconds": 7.501938917092048,
+      "accuracy": 0.9032663316582915,
+      "precision": 0.9014738865748158,
+      "recall": 0.9067762468777697,
+      "f1": 0.904117292629042,
+      "macro_f1": 0.9032587117354638,
+      "roc_auc": 0.9652287466541639,
+      "confusion_matrix": [
+        [
+          11035,
+          1230
+        ],
+        [
+          1157,
+          11254
+        ]
+      ],
+      "classification_report": {
+        "negative": {
+          "precision": 0.9051017060367454,
+          "recall": 0.8997146351406441,
+          "f1-score": 0.9024001308418858,
+          "support": 12265.0
+        },
+        "positive": {
+          "precision": 0.9014738865748158,
+          "recall": 0.9067762468777697,
+          "f1-score": 0.904117292629042,
+          "support": 12411.0
+        },
+        "accuracy": 0.9032663316582915,
+        "macro avg": {
+          "precision": 0.9032877963057806,
+          "recall": 0.9032454410092069,
+          "f1-score": 0.9032587117354638,
+          "support": 24676.0
+        },
+        "weighted avg": {
+          "precision": 0.903277063982036,
+          "recall": 0.9032663316582915,
+          "f1-score": 0.9032637916840156,
+          "support": 24676.0
+        }
+      }
+    },
+    {
+      "model": "linear_svm",
+      "best_params": {
+        "clf__C": 0.5
+      },
+      "cv_macro_f1": 0.9007202018991318,
+      "cv_std": 0.0017183371535446717,
+      "cv_train_macro_f1": 0.9933338391925046,
+      "search_seconds": 61.80092416703701,
+      "refit_seconds": 7.593949794769287,
+      "vocabulary_size": 40000,
+      "predict_and_score_seconds": 7.685844999970868,
+      "accuracy": 0.9010779704976495,
+      "precision": 0.9018864882296034,
+      "recall": 0.9013778100072516,
+      "f1": 0.9016320773725569,
+      "macro_f1": 0.9010748315297393,
+      "roc_auc": 0.9649281440727118,
+      "confusion_matrix": [
+        [
+          11048,
+          1217
+        ],
+        [
+          1224,
+          11187
+        ]
+      ],
+      "classification_report": {
+        "negative": {
+          "precision": 0.9002607561929595,
+          "recall": 0.9007745617611088,
+          "f1-score": 0.9005175856869218,
+          "support": 12265.0
+        },
+        "positive": {
+          "precision": 0.9018864882296034,
+          "recall": 0.9013778100072516,
+          "f1-score": 0.9016320773725569,
+          "support": 12411.0
+        },
+        "accuracy": 0.9010779704976495,
+        "macro avg": {
+          "precision": 0.9010736222112814,
+          "recall": 0.9010761858841803,
+          "f1-score": 0.9010748315297393,
+          "support": 24676.0
+        },
+        "weighted avg": {
+          "precision": 0.901078431679537,
+          "recall": 0.9010779704976495,
+          "f1-score": 0.9010781285751701,
+          "support": 24676.0
+        }
+      }
+    }
+  ],
+  "baseline": {
+    "accuracy": 0.5029583400875345,
+    "precision": 0.5029583400875345,
+    "recall": 1.0,
+    "f1": 0.6692911262706609,
+    "macro_f1": 0.33464556313533045,
+    "roc_auc": 0.5,
+    "confusion_matrix": [
+      [
+        0,
+        12265
+      ],
+      [
+        0,
+        12411
+      ]
+    ],
+    "classification_report": {
+      "negative": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 12265.0
+      },
+      "positive": {
+        "precision": 0.5029583400875345,
+        "recall": 1.0,
+        "f1-score": 0.6692911262706609,
+        "support": 12411.0
+      },
+      "accuracy": 0.5029583400875345,
+      "macro avg": {
+        "precision": 0.25147917004376724,
+        "recall": 0.5,
+        "f1-score": 0.33464556313533045,
+        "support": 24676.0
+      },
+      "weighted avg": {
+        "precision": 0.252967091863608,
+        "recall": 0.5029583400875345,
+        "f1-score": 0.336625553904408,
+        "support": 24676.0
+      }
+    },
+    "model": "majority_baseline"
+  },
+  "uncertainty": {
+    "repetitions": 1000,
+    "confidence_level": 0.95,
+    "accuracy_ci": {
+      "multinomial_nb": [
+        0.8674410358242827,
+        0.8758317798670774
+      ],
+      "logistic_regression": [
+        0.8995369995136975,
+        0.9067525125628141
+      ],
+      "linear_svm": [
+        0.8972280758631869,
+        0.9045226130653267
+      ],
+      "majority_baseline": [
+        0.4969950559247852,
+        0.5090776462959961
+      ]
+    },
+    "winner_minus_other_accuracy_ci": {
+      "multinomial_nb": [
+        0.025449829794132017,
+        0.033192170530069696
+      ],
+      "logistic_regression": [
+        -0.003971470254498291,
+        -0.00040525206678554415
+      ],
+      "majority_baseline": [
+        0.39131038255795103,
+        0.40505146701248174
+      ]
+    }
+  },
+  "length_analysis": [
+    {
+      "group": "<100 words",
+      "n": 3138,
+      "accuracy": 0.9063097514340345
+    },
+    {
+      "group": "100–299 words",
+      "n": 16267,
+      "accuracy": 0.9021331530091596
+    },
+    {
+      "group": ">=300 words",
+      "n": 5271,
+      "accuracy": 0.8947068867387592
+    }
+  ],
+  "feature_weights": {
+    "negative": [
+      {
+        "term": "worst",
+        "weight": -3.405028344604113
+      },
+      {
+        "term": "bad",
+        "weight": -3.323007538228659
+      },
+      {
+        "term": "awful",
+        "weight": -3.1977722256245045
+      },
+      {
+        "term": "boring",
+        "weight": -2.918473307283306
+      },
+      {
+        "term": "poor",
+        "weight": -2.5997813457063126
+      },
+      {
+        "term": "the worst",
+        "weight": -2.5493423628460796
+      },
+      {
+        "term": "waste",
+        "weight": -2.4736100823505978
+      },
+      {
+        "term": "disappointment",
+        "weight": -2.4052242399512176
+      },
+      {
+        "term": "disappointing",
+        "weight": -2.2637965697602342
+      },
+      {
+        "term": "poorly",
+        "weight": -2.2275293109254295
+      },
+      {
+        "term": "terrible",
+        "weight": -2.1958131307186965
+      },
+      {
+        "term": "worse",
+        "weight": -2.1421707693777403
+      },
+      {
+        "term": "dull",
+        "weight": -2.126940199103546
+      },
+      {
+        "term": "mess",
+        "weight": -2.005695374520335
+      },
+      {
+        "term": "unfortunately",
+        "weight": -1.9528668407781125
+      },
+      {
+        "term": "horrible",
+        "weight": -1.9406676884884968
+      },
+      {
+        "term": "nothing",
+        "weight": -1.9239056613814232
+      },
+      {
+        "term": "lacks",
+        "weight": -1.8925897156181064
+      }
+    ],
+    "positive": [
+      {
+        "term": "great",
+        "weight": 3.0084096973690015
+      },
+      {
+        "term": "excellent",
+        "weight": 2.762108483120399
+      },
+      {
+        "term": "perfect",
+        "weight": 2.409485712830343
+      },
+      {
+        "term": "wonderful",
+        "weight": 2.0910629182408806
+      },
+      {
+        "term": "today",
+        "weight": 1.8955128612753154
+      },
+      {
+        "term": "fun",
+        "weight": 1.8457892235264033
+      },
+      {
+        "term": "amazing",
+        "weight": 1.8145307050428237
+      },
+      {
+        "term": "enjoyable",
+        "weight": 1.8120945799946153
+      },
+      {
+        "term": "superb",
+        "weight": 1.6744953528496958
+      },
+      {
+        "term": "the best",
+        "weight": 1.661920142357349
+      },
+      {
+        "term": "bit",
+        "weight": 1.589206491532458
+      },
+      {
+        "term": "brilliant",
+        "weight": 1.5698640227990055
+      },
+      {
+        "term": "loved",
+        "weight": 1.561702157972193
+      },
+      {
+        "term": "best",
+        "weight": 1.5471609596758538
+      },
+      {
+        "term": "favorite",
+        "weight": 1.5432836257982976
+      },
+      {
+        "term": "better than",
+        "weight": 1.5152260396895798
+      },
+      {
+        "term": "rare",
+        "weight": 1.45785027286518
+      },
+      {
+        "term": "definitely worth",
+        "weight": 1.4541980129342114
+      }
+    ]
+  },
+  "data_audit": {
+    "original_rows": 50000,
+    "empty_removed": 0,
+    "within_split": {
+      "train": {
+        "conflicting_rows_removed": 0,
+        "duplicate_rows_removed": 98
+      },
+      "test": {
+        "conflicting_rows_removed": 0,
+        "duplicate_rows_removed": 201
+      }
+    },
+    "cross_split_test_duplicates_removed": 123,
+    "clean_rows": 49578,
+    "counts": {
+      "train": {
+        "0": 12431,
+        "1": 12471
+      },
+      "test": {
+        "0": 12265,
+        "1": 12411
+      }
+    },
+    "word_length": {
+      "train": {
+        "median": 173.0,
+        "mean": 231.71122801381415,
+        "p95": 593.0
+      },
+      "test": {
+        "median": 171.0,
+        "mean": 226.39844383206355,
+        "p95": 577.0
+      }
+    }
+  },
+  "environment": {
+    "python": "3.14.0 (main, Oct  7 2025, 09:34:52) [Clang 17.0.0 (clang-1700.0.13.3)]",
+    "platform": "macOS-15.7.1-arm64-arm-64bit-Mach-O",
+    "packages": {
+      "scikit-learn": "1.9.1",
+      "numpy": "2.5.3",
+      "pandas": "3.0.6",
+      "matplotlib": "3.11.2",
+      "joblib": "1.6.0"
+    }
+  }
+}

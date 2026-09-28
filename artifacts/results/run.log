@@ -1,0 +1,10 @@
+10:13:30 INFO Verified cached archive; network access skipped
+10:13:32 INFO Read 50000 labeled reviews
+10:13:41 INFO Tuning multinomial_nb: 3 folds, 2 candidates
+10:14:41 INFO multinomial_nb CV macro-F1 0.8790; search 59.6s
+10:14:41 INFO Tuning logistic_regression: 3 folds, 2 candidates
+10:15:43 INFO logistic_regression CV macro-F1 0.8992; search 61.3s
+10:15:43 INFO Tuning linear_svm: 3 folds, 2 candidates
+10:16:45 INFO linear_svm CV macro-F1 0.9007; search 61.8s
+CV-selected model: linear_svm; 24676 test reviews
+Report: /Users/renzhiyuan/Downloads/QQDownloads/教程/homework/imdb_sentiment_lab/reports/index.html
