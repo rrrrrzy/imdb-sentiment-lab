@@ -19,6 +19,16 @@ def generate_report(paths: Paths) -> None:
     paths.reports.mkdir(parents=True, exist_ok=True)
     rows = summary["models"]
     winner = next(row for row in rows if row["model"] == summary["winner"])
+    fastest = min(rows, key=lambda row: row["search_seconds"])
+    tradeoff = (f"本机搜索耗时最少的是 {NAMES[fastest['model']]}（{fastest['search_seconds']:.1f} 秒）。"
+                f"CV 所选模型的搜索耗时为 {winner['search_seconds']:.1f} 秒，"
+                f"相对该最快模型的测试准确率差值为 {(winner['accuracy']-fastest['accuracy'])*100:+.2f} 个百分点。"
+                "这同时比较了预测效果与计算成本；搜索包含特征计算，不等同于分类器本身的速度。")
+    fitting_details = "\n".join(
+        f"- {NAMES[row['model']]}：最佳参数 `{row['best_params']}`；CV macro-F1 标准差 {row['cv_std']:.4f}；"
+        f"CV 训练/验证 Macro-F1 差 {(row['cv_train_macro_f1']-row['cv_macro_f1'])*100:.2f} 个百分点；"
+        f"最终词表 {row['vocabulary_size']:,}；重拟合 {row['refit_seconds']:.1f}s；"
+        f"测试预测及分数计算 {row['predict_and_score_seconds']:.1f}s。" for row in rows)
     ci = summary["uncertainty"]["accuracy_ci"][summary["winner"]]
     table_rows, md_rows = [], []
     for row in rows:
@@ -53,7 +63,7 @@ def generate_report(paths: Paths) -> None:
                "length_rows": length_rows, "comparisons": comparisons,
                "baseline_accuracy": percentage(summary["baseline"]["accuracy"]),
                "generated": html.escape(summary["generated_at_utc"]),
-               "cv_folds": str(summary["config"]["cv_folds"])}
+               "cv_folds": str(summary["config"]["cv_folds"]), "tradeoff": html.escape(tradeoff)}
     template = files("sentiment_lab.web").joinpath("report.html").read_text(encoding="utf-8")
     for key, value in context.items():
         template = template.replace("{{" + key + "}}", value)
@@ -90,6 +100,12 @@ def generate_report(paths: Paths) -> None:
 按 CV 选择的模型为 **{NAMES[summary['winner']]}**，测试准确率 **{percentage(winner['accuracy'])}**、macro-F1 **{percentage(winner['macro_f1'])}**。准确率比多数类基线提高 {(winner['accuracy']-summary['baseline']['accuracy'])*100:.2f} 个百分点。
 准确率95% CI：{percentage(ci[0])}–{percentage(ci[1])}。使用 {summary['uncertainty']['repetitions']} 次评论级有放回 bootstrap，同一组索引用于各模型，得到配对准确率差值区间（见 metrics.json）。这只度量测试样本抽样不确定性，不包含训练随机性或电影聚类影响。
 CV 标准差描述三折差异，不是置信区间。search_seconds 包含向量化、全部候选 CV 和最终重拟合；refit_seconds 仅包含最佳 Pipeline 重拟合；耗时依赖设备，不能与其他机器的耗时直接比较。
+
+{tradeoff}
+
+{fitting_details}
+
+训练/验证差值用于观察模型对训练文本的拟合程度；差值较大提示泛化差距，但不能仅据此证明过拟合机制。
 
 ![数据分布](figures/data_overview.png)
 ![模型比较](figures/model_comparison.png)
