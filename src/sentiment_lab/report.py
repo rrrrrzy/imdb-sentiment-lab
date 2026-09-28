@@ -10,16 +10,26 @@ from .visualization import NAMES, make_figures
 
 
 def percentage(value):
+    # 输入 0–1 的比例，返回两位小数百分数字符串，如 0.9033 → '90.33%'。
+    # 这是展示格式转换，不能把该字符串写回数值指标或再次乘 100。
     return f"{value * 100:.2f}%"
 
 
 def generate_report(paths: Paths) -> None:
+    # 输入 Paths，返回 None；输出 reports 下 HTML/Markdown、CSS/JS 副本及五组图表。
+    # 前提：训练阶段产物完整，清洗 CSV 仍存在；缺文件时直接失败，不生成虚构占位结果。
+    # 报告只消费已经测得的指标和预测产物，不重新训练；绘图还需要逐条预测及清洗 CSV。
+    # 所有展示值从本次 metrics.json 读取，避免网页和 Markdown 各维护一套历史数字。
     summary = read_json(paths.results / "metrics.json")
     make_figures(paths, summary)
     paths.reports.mkdir(parents=True, exist_ok=True)
     rows = summary["models"]
+    # 展示的主模型遵循训练阶段的 winner；最快模型和测试最高分模型仅用于结果比较。
     winner = next(row for row in rows if row["model"] == summary["winner"])
+    # next 找到与保存 winner 名称相同的那条结果；若产物不一致、找不到记录，会报错。
     fastest = min(rows, key=lambda row: row["search_seconds"])
+    # 准确率差值用两个 0–1 比例相减再乘 100，单位为百分点。
+    # 例如 0.90-0.87=0.03，表示高 3 个百分点，并非相对增长 3%。
     tradeoff = (f"本机搜索耗时最少的是 {NAMES[fastest['model']]}（{fastest['search_seconds']:.1f} 秒）。"
                 f"CV 所选模型的搜索耗时为 {winner['search_seconds']:.1f} 秒，"
                 f"相对该最快模型的测试准确率差值为 {(winner['accuracy']-fastest['accuracy'])*100:+.2f} 个百分点。"
@@ -29,6 +39,7 @@ def generate_report(paths: Paths) -> None:
         f"CV 训练/验证 Macro-F1 差 {(row['cv_train_macro_f1']-row['cv_macro_f1'])*100:.2f} 个百分点；"
         f"最终词表 {row['vocabulary_size']:,}；重拟合 {row['refit_seconds']:.1f}s；"
         f"测试预测及分数计算 {row['predict_and_score_seconds']:.1f}s。" for row in rows)
+    # 拼接每种模型的拟合细节；训练/验证差值描述泛化差距，不能仅凭差值确定错误机制。
     test_leader = max(rows, key=lambda row: row["accuracy"])
     ranking_note = (f"本次独立测试准确率最高的是 {NAMES[test_leader['model']]}（{percentage(test_leader['accuracy'])}），"
                     f"比 CV 所选模型高 {(test_leader['accuracy']-winner['accuracy'])*100:.2f} 个百分点。"
@@ -36,29 +47,39 @@ def generate_report(paths: Paths) -> None:
     ci = summary["uncertainty"]["accuracy_ci"][summary["winner"]]
     table_rows, md_rows = [], []
     for row in rows:
+        # 同一组格式化单元格同时生成 HTML/Markdown 表格，使百分比和精度保持一致。
         interval = summary["uncertainty"]["accuracy_ci"][row["model"]]
         cells = [NAMES[row["model"]], percentage(row["cv_macro_f1"]), percentage(row["accuracy"]),
                  percentage(row["precision"]), percentage(row["recall"]), percentage(row["macro_f1"]),
                  f"{row['roc_auc']:.4f}", f"{row['search_seconds']:.1f}",
                  f"{percentage(interval[0])}–{percentage(interval[1])}"]
         table_rows.append("<tr>" + "".join(f"<td>{html.escape(cell)}</td>" for cell in cells) + "</tr>")
+        # <tr> 表示表格行、<td> 表示单元格；HTML 必须转义，而 Markdown 用管道符分列。
         md_rows.append("| " + " | ".join(cells) + " |")
+    # 按真实标签各展示最多 6 条已保存误判，data-label 支持前端按类别筛选。
+    # 评论正文、ID 和动态文本插入 HTML 前要转义，避免原评论中的标签被浏览器执行。
     errors = pd.read_csv(paths.results / "error_examples.csv", keep_default_na=False).groupby("label", group_keys=False).head(6)
     error_html = "".join(
         f'<details class="error" data-label="{row.label}"><summary>真实：{"正面" if row.label else "负面"} / '
         f'预测：{"正面" if row.prediction else "负面"} · {html.escape(row.id)}</summary>'
         f'<p lang="en">{html.escape(row.text)}</p></details>' for row in errors.itertuples())
+    # itertuples 将每行映射为带列名属性的元组，便于 row.label/row.text 访问。
+    # details/summary 提供浏览器自带的折叠展开；data-label 对应前端 item.dataset.label。
     audit = summary["data_audit"]
     removed = audit["original_rows"] - audit["clean_rows"]
+    # 使用审计总量相减得到总移除数；不把重复、冲突等不同阶段计数随意相加，以免重算。
     feature_boxes = "".join(f'<article><h3>{"负面" if polarity == "negative" else "正面"}特征</h3><p class="terms">' +
         " / ".join(html.escape(f["term"]) for f in summary["feature_weights"][polarity][:12]) + "</p></article>"
         for polarity in ["negative", "positive"])
     length_rows = "".join(f"<tr><td>{html.escape(r['group'])}</td><td>{r['n']:,}</td><td>{percentage(r['accuracy']) if r['accuracy'] is not None else '—'}</td></tr>"
                           for r in summary["length_analysis"])
+    # 没有样本的长度组 accuracy=None，显示 '—'，不能显示为 0% 误导读者。
     comparisons = "".join(f"<li>相对 {html.escape(NAMES.get(name, '多数类基线'))} 的准确率差值 95% CI："
                           f"[{interval[0]*100:.2f}, {interval[1]*100:.2f}] 个百分点。"
                           f"{'区间包含 0，当前抽样不能明确区分。' if interval[0] <= 0 <= interval[1] else '区间未包含 0；结论仅适用于本次测试样本。'}</li>"
                           for name, interval in summary["uncertainty"]["winner_minus_other_accuracy_ci"].items())
+    # context 中有纯文本和已构造的 HTML 片段，转义在各片段构造处完成。
+    # 模板仅用 {{key}} 做字符串替换，不执行模板中的 Python 表达式。
     context = {"clean_rows": f"{audit['clean_rows']:,}", "train_rows": f"{summary['train_rows']:,}",
                "test_rows": f"{summary['test_rows']:,}", "winner": NAMES[summary["winner"]],
                "accuracy": percentage(winner["accuracy"]), "macro_f1": percentage(winner["macro_f1"]),
@@ -68,12 +89,17 @@ def generate_report(paths: Paths) -> None:
                "baseline_accuracy": percentage(summary["baseline"]["accuracy"]),
                "generated": html.escape(summary["generated_at_utc"]),
                "cv_folds": str(summary["config"]["cv_folds"]), "tradeoff": html.escape(tradeoff), "ranking_note": html.escape(ranking_note)}
+    # 通过包资源读取模板，使安装后的命令也能找到 HTML/CSS/JS，而非依赖源码工作目录。
     template = files("sentiment_lab.web").joinpath("report.html").read_text(encoding="utf-8")
     for key, value in context.items():
+        # 双花括号明确占位符边界，如 {{accuracy}}；此处 value 都已格式化为字符串。
         template = template.replace("{{" + key + "}}", value)
     (paths.reports / "index.html").write_text(template, encoding="utf-8")
+    # reports 中的网页资源是生成副本，修改样式/交互应先改 src/sentiment_lab/web 下源文件。
     for name in ["style.css", "app.js"]:
+        # 连同资源一起生成，报告可直接打开浏览；预测功能仍要求本地 HTTP 服务。
         (paths.reports / name).write_text(files("sentiment_lab.web").joinpath(name).read_text(encoding="utf-8"), encoding="utf-8")
+    # Markdown 使用同一 summary、表格和解释，便于独立阅读或用于课程材料。
     markdown = f"""# IMDb 评论情感分类综合实验报告
 
 ## 1. 研究问题与数据
